@@ -22,7 +22,7 @@ class AdbAppManager < Formula
       if [ ! -d "$VENV_DIR" ]; then
           echo "[*] Setting up ADB App Manager Python Environment for the first time..."
           mkdir -p "$(dirname "$VENV_DIR")"
-          "#{Formula["python@3.12"].opt_bin}/python3" -m venv "$VENV_DIR"
+          "#{Formula["python@3.12"].opt_bin}/python3.12" -m venv "$VENV_DIR"
           
           # Install dependencies quietly
           if [ -f "#{libexec}/requirements.txt" ]; then
