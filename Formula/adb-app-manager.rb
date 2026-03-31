@@ -7,7 +7,7 @@ class AdbAppManager < Formula
   license "MIT"
 
   depends_on "python@3.12"
-  depends_on "android-platform-tools"
+  depends_on cask: "android-platform-tools"
 
   def install
     # Install the main Python script and any required files to libexec
@@ -25,12 +25,9 @@ class AdbAppManager < Formula
       system libexec/"venv/bin/pip", "install", "textual", "rich"
     end
 
-    # Create the executable wrapper script that maps ADB into the path and runs the venv Python
+    # Create the executable wrapper script ensuring the original PATH inherits Homebrew binaries
     (bin/"adb-app-manager").write <<~EOS
       #!/bin/bash
-      
-      # Ensure ADB is in the PATH from the android-platform-tools formula
-      export PATH="#{Formula["android-platform-tools"].opt_bin}:$PATH"
       
       # Execute the Python script inside the isolated virtual environment
       exec "#{libexec}/venv/bin/python" "#{libexec}/adb_manager.py" "$@"
