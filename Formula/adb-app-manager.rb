@@ -13,23 +13,29 @@ class AdbAppManager < Formula
     libexec.install "adb_manager.py"
     libexec.install "requirements.txt" if File.exist?("requirements.txt")
 
-    # Set up an isolated Python Virtual Environment
-    system Formula["python@3.12"].opt_bin/"python3", "-m", "venv", libexec/"venv"
-
-    # Upgrade pip and install the dependencies silently
-    system libexec/"venv/bin/pip", "install", "--upgrade", "pip"
-    if File.exist?("requirements.txt")
-      system libexec/"venv/bin/pip", "install", "-r", "requirements.txt"
-    else
-      system libexec/"venv/bin/pip", "install", "textual", "rich"
-    end
-
-    # Create the executable wrapper script ensuring the original PATH inherits Homebrew binaries
+    # Write a dynamic wrapper that automatically sets up the venv safely in the user's local directory!
     (bin/"adb-app-manager").write <<~EOS
       #!/bin/bash
       
+      VENV_DIR="$HOME/.local/share/adb-app-manager-venv"
+      
+      if [ ! -d "$VENV_DIR" ]; then
+          echo "[*] Setting up ADB App Manager Python Environment for the first time..."
+          mkdir -p "$(dirname "$VENV_DIR")"
+          "#{Formula["python@3.12"].opt_bin}/python3" -m venv "$VENV_DIR"
+          
+          # Install dependencies quietly
+          if [ -f "#{libexec}/requirements.txt" ]; then
+              "$VENV_DIR/bin/pip" install --upgrade pip -q
+              "$VENV_DIR/bin/pip" install -r "#{libexec}/requirements.txt" -q
+          else
+              "$VENV_DIR/bin/pip" install textual rich -q
+          fi
+          echo "[*] Setup Complete! Launching Interactive Manager..."
+      fi
+      
       # Execute the Python script inside the isolated virtual environment
-      exec "#{libexec}/venv/bin/python" "#{libexec}/adb_manager.py" "$@"
+      exec "$VENV_DIR/bin/python" "#{libexec}/adb_manager.py" "$@"
     EOS
   end
 
