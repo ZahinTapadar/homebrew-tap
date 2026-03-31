@@ -3,6 +3,7 @@ class AdbAppManager < Formula
   homepage "https://github.com/ZahinTapadar/adb-app-manager"
   url "https://github.com/ZahinTapadar/adb-app-manager/archive/refs/tags/v1.0.0.tar.gz"
   version "1.0.0"
+  revision 1
   sha256 "bb961085b75c517d32d1c3213fd0dbca3cec93d45a9982c2df783ebdee1b9151"
   license "MIT"
 
