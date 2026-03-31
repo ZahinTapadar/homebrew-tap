@@ -7,7 +7,6 @@ class AdbAppManager < Formula
   license "MIT"
 
   depends_on "python@3.12"
-  depends_on cask: "android-platform-tools"
 
   def install
     # Install the main Python script and any required files to libexec
@@ -31,6 +30,16 @@ class AdbAppManager < Formula
       
       # Execute the Python script inside the isolated virtual environment
       exec "#{libexec}/venv/bin/python" "#{libexec}/adb_manager.py" "$@"
+    EOS
+  end
+
+  def caveats
+    <<~EOS
+      ADB App Manager requires ADB (Android Debug Bridge) to connect to your device.
+      Homebrew has migrated ADB to a Cask, which cannot be automatically installed as a dependency.
+
+      If you don't already have ADB installed, please run:
+        brew install --cask android-platform-tools
     EOS
   end
 
