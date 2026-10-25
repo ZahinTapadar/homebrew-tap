@@ -1,6 +1,6 @@
 cask "atlas" do
-  version "1.2.0"
-  sha256 "951137a45340bfa17fab5d7874ef82b67a291b8f6bd40cdbf14287ea7b4642d3"
+  version "1.3.1"
+  sha256 "15c394ee4ef979509f001159bf77e05c271713aad3ee6e6c702e49290163bd18"
 
   url "https://github.com/ZahinTapadar/atlas/releases/download/v#{version}/ATLAS-#{version}.dmg"
   name "ATLAS"
@@ -12,6 +12,7 @@ cask "atlas" do
     strategy :github_latest
   end
 
+  auto_updates true
   depends_on macos: ">= :sonoma"
 
   app "ATLAS.app"
@@ -27,6 +28,7 @@ cask "atlas" do
     Open System Settings → Privacy & Security and click "Open Anyway" next to
     "ATLAS was blocked". You only need to do this once.
 
-    For scheduled check-ins, open ATLAS → Settings → Claude and click Connect.
+    On first launch a setup checklist walks you through permissions, connecting
+    Claude, your check-in schedule and email. ATLAS updates itself after that.
   EOS
 end
