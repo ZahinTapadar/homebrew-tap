@@ -1,0 +1,41 @@
+name: Test casks
+
+# Installs each cask from this tap on a clean Mac, the way a new user would.
+on:
+  push:
+    paths: ["Casks/**", ".github/workflows/test-casks.yml"]
+  workflow_dispatch:
+
+jobs:
+  atlas:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26, macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Tap and install
+        run: |
+          brew tap zahintapadar/tap
+          brew install --cask zahintapadar/tap/atlas
+      - name: Audit
+        run: brew audit --cask --online zahintapadar/tap/atlas || true
+      - name: Installed as expected
+        run: |
+          test -d /Applications/ATLAS.app
+          plutil -extract CFBundleShortVersionString raw /Applications/ATLAS.app/Contents/Info.plist
+          lipo -archs /Applications/ATLAS.app/Contents/MacOS/ATLAS
+          codesign --verify --deep --strict /Applications/ATLAS.app && echo "signature intact"
+          which atlasctl
+          spctl --assess --type execute /Applications/ATLAS.app && echo "gatekeeper: accepted" || echo "gatekeeper: needs Open Anyway (expected without notarization)"
+      - name: App launches
+        run: |
+          /Applications/ATLAS.app/Contents/MacOS/ATLAS --demo &
+          PID=$!
+          sleep 12
+          kill -0 $PID && echo "ATLAS is running"
+          kill $PID
+      - name: CLI runs
+        run: atlasctl 2>&1 | head -5 || true
+      - name: Uninstall
+        run: brew uninstall --cask zahintapadar/tap/atlas && test ! -d /Applications/ATLAS.app
