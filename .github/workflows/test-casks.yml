@@ -28,14 +28,29 @@ jobs:
           codesign --verify --deep --strict /Applications/ATLAS.app && echo "signature intact"
           which atlasctl
           spctl --assess --type execute /Applications/ATLAS.app && echo "gatekeeper: accepted" || echo "gatekeeper: needs Open Anyway (expected without notarization)"
+      # GitHub's Intel runners are VMs without a GPU, where any SwiftUI app aborts in Metal on its first frame.
+      # There the GUI is covered by running the Intel slice under Rosetta on the Apple Silicon runners.
       - name: App launches
+        if: matrix.os != 'macos-15-intel'
         run: |
           /Applications/ATLAS.app/Contents/MacOS/ATLAS --demo &
           PID=$!
           sleep 12
           kill -0 $PID && echo "ATLAS is running"
           kill $PID
+      - name: Intel build launches (Rosetta)
+        if: matrix.os != 'macos-15-intel'
+        run: |
+          /usr/bin/pgrep -q oahd || softwareupdate --install-rosetta --agree-to-license
+          arch -x86_64 /Applications/ATLAS.app/Contents/MacOS/ATLAS --demo &
+          PID=$!
+          sleep 15
+          kill -0 $PID && echo "ATLAS (x86_64) is running"
+          kill $PID
       - name: CLI runs
-        run: atlasctl 2>&1 | head -5 || true
+        run: |
+          file "$(readlink -f "$(which atlasctl)")"
+          out=$(atlasctl 2>&1 || true); echo "$out"
+          echo "$out" | grep -q "ATLAS"
       - name: Uninstall
         run: brew uninstall --cask zahintapadar/tap/atlas && test ! -d /Applications/ATLAS.app
